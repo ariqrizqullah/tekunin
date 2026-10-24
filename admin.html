@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Tekunin CCTV</title>
+    
+    <link id="site-favicon" rel="icon" type="image/png" href="https://tekunin.com/images/logo.png">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0f6ff', 100: '#e0effe', 500: '#0284c7', 600: '#0284c7', 900: '#0c4a6e', 950: '#082f49' },
+                        accent: '#10b981', 
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-dark { background: rgba(8, 47, 73, 0.9); backdrop-filter: blur(16px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen h-screen selection:bg-sky-500 selection:text-white overflow-hidden">
+
+    <!-- Login Section -->
+    <div id="login-section" class="flex items-center justify-center min-h-screen w-full bg-slate-900/40 relative z-50">
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 animate-pop-in flex flex-col border border-slate-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-lock text-sky-600"></i> Admin Login</h3>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Username</label>
+                    <input type="text" id="login-user" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-sky-500 font-medium" placeholder="Username">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Password</label>
+                    <input type="password" id="login-pass" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-sky-500 font-medium" placeholder="Password">
+                </div>
+                <div id="login-error" class="hidden text-xs text-rose-600 font-bold bg-rose-50 border border-rose-100 p-3 rounded-xl text-center">Username atau Password salah!</div>
+                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 active:scale-95 text-sm transition-all">Masuk Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="admin-section" class="hidden flex-col h-screen w-full bg-white relative z-10">
+        <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-950 text-white">
+            <div class="flex items-center gap-6">
+                <h3 class="text-base font-black flex items-center gap-3"><i class="fa-solid fa-screwdriver-wrench text-sky-400"></i> Admin Dashboard <span id="admin-user-badge" class="text-[10px] bg-sky-600 text-white font-extrabold px-2.5 py-0.5 rounded-full uppercase ml-1">Admin</span></h3>
+                <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold overflow-x-auto hide-scrollbar">
+                    <button onclick="switchAdminTab('katalog')" id="tab-btn-katalog" class="px-4 py-1.5 rounded-lg bg-sky-600 text-white transition-all whitespace-nowrap">Katalog Produk</button>
+                    <button onclick="switchAdminTab('data-pelanggan')" id="tab-btn-data-pelanggan" class="px-4 py-1.5 rounded-lg text-slate-300 hover:text-white transition-all whitespace-nowrap">Data Pelanggan (Rekap)</button>
+                    <button onclick="switchAdminTab('pelanggan')" id="tab-btn-pelanggan" class="px-4 py-1.5 rounded-lg text-slate-300 hover:text-white transition-all whitespace-nowrap">Pelanggan PO / Pesan</button>
+                    <button onclick="switchAdminTab('tambah-anggota')" id="tab-btn-tambah-anggota" class="px-4 py-1.5 rounded-lg text-slate-300 hover:text-white transition-all whitespace-nowrap">Tambah Anggota</button>
+                    <button onclick="switchAdminTab('pengaturan')" id="tab-btn-pengaturan" class="px-4 py-1.5 rounded-lg text-slate-300 hover:text-white transition-all whitespace-nowrap">Pengaturan Desain & Tema</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="logoutAdmin()" class="text-xs bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+                <a href="index.html" class="text-slate-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></a>
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-slate-50">
+            
+            <!-- TAB 1: KATALOG PRODUK -->
+            <div id="admin-tab-katalog" class="space-y-8">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h4 class="font-black text-slate-900 text-sm">Backup & Restore Katalog</h4>
+                        <p class="text-xs text-slate-500">Export data ke CSV atau Import kembali (otomatis tersinkronisasi ke Firebase).</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="exportCatalogCSV()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl shadow-md transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-file-arrow-down"></i> EXPORT KATALOG (CSV)
+                        </button>
+                        <label class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-file-arrow-up"></i> IMPORT KATALOG (CSV)
+                            <input type="file" id="import-csv-file" accept=".csv" class="hidden" onchange="importCatalogCSV(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-sm"><i class="fa-solid fa-box-open"></i></div>
+                        <h4 id="admin-form-title" class="text-base font-black text-slate-900">Tambah Produk Baru</h4>
+                    </div>
+                    <input type="hidden" id="edit-product-id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Nama Paket</label>
+                            <input type="text" id="admin-name" placeholder="Cth: Paket CCTV Dahua" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 product-field">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Grup / Merek</label>
+                            <input type="text" id="admin-group" placeholder="Cth: Dahua" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 product-field">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Label / Badge</label>
+                            <input type="text" id="admin-badge" placeholder="Cth: Terlaris" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 product-field">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Harga (Rp)</label>
+                            <input type="number" id="admin-price" placeholder="Cth: 2800000" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 product-field">
+                        </div>
+                        <div class="group md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">URL Gambar (Opsional)</label>
+                            <input type="url" id="admin-image" placeholder="https://..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 product-field">
+                        </div>
+                        <div class="md:col-span-2 bg-sky-50/50 p-5 rounded-2xl border border-sky-100 flex flex-col gap-2">
+                            <label class="block text-xs font-black text-sky-700 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-base"></i> Atau Upload Gambar Lokal
+                            </label>
+                            <input type="file" id="admin-file-upload" accept="image/*" class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-sky-600 file:text-white cursor-pointer product-field">
+                        </div>
+                        <div class="md:col-span-2 group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Deskripsi Fitur</label>
+                            <textarea id="admin-desc" rows="3" placeholder="Deskripsikan fitur paket..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500 resize-none product-field"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-slate-100">
+                        <button id="admin-cancel-edit" onclick="resetAdminForm()" class="hidden px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold">Batal</button>
+                        <button id="btn-save-product" onclick="saveAdminProduct()" class="px-7 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-sky-600/30 flex items-center gap-2 product-field">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Data (Live)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
+                    <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Manajemen Katalog Produk</h4>
+                        <span id="admin-product-count" class="text-xs bg-sky-100 text-sky-700 font-extrabold px-3 py-1 rounded-full">0 Data</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-white border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th class="py-3 px-6">Gambar</th>
+                                    <th class="py-3 px-6">Info Produk</th>
+                                    <th class="py-3 px-6">Harga (Rp)</th>
+                                    <th class="py-3 px-6 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-product-table" class="divide-y divide-slate-100 bg-white font-medium text-slate-700 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB BARU: DASHBOARD REKAP DATA PELANGGAN -->
+            <div id="admin-tab-data-pelanggan" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h4 class="font-black text-slate-900 text-base">Dashboard Rekapitulasi Data Pelanggan</h4>
+                        <p class="text-xs text-slate-500">Pelanggan baru akan otomatis terdata di sini dari pesanan masuk tanpa perlu input manual.</p>
+                    </div>
+                    <span id="data-pelanggan-count" class="text-xs bg-sky-100 text-sky-700 font-extrabold px-3.5 py-2 rounded-full">0 Pelanggan Aktif</span>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th class="py-3.5 px-6">Nama Pelanggan</th>
+                                    <th class="py-3.5 px-6">No. HP / WhatsApp</th>
+                                    <th class="py-3.5 px-6">Alamat Pemasangan</th>
+                                    <th class="py-3.5 px-6 text-center">Jumlah Transaksi</th>
+                                    <th class="py-3.5 px-6 text-right">Total Nilai Pembelian</th>
+                                    <th class="py-3.5 px-6 text-center">Pesanan Terakhir</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-data-pelanggan-table" class="divide-y divide-slate-100 bg-white font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: KOLOM PELANGGAN PO / PESAN -->
+            <div id="admin-tab-pelanggan" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h4 class="font-black text-slate-900 text-base">Informasi Pelanggan (PO / Pesan) & Export CSV</h4>
+                        <p class="text-xs text-slate-500">Kelola status pembayaran, DP, garansi, serta simpan data pelanggan ke file CSV.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="exportCustomersCSV()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl shadow-md transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-file-arrow-down"></i> EXPORT (CSV)
+                        </button>
+                        <label class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer customer-po-field">
+                            <i class="fa-solid fa-file-arrow-up"></i> IMPORT (CSV)
+                            <input type="file" id="import-customer-csv-file" accept=".csv" class="hidden" onchange="importCustomersCSV(event)">
+                        </label>
+                        <span id="admin-customer-count" class="text-xs bg-emerald-100 text-emerald-700 font-extrabold px-3.5 py-2 rounded-full">0 Pesanan PO</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th class="py-3.5 px-6">No. Pesanan / Tanggal</th>
+                                    <th class="py-3.5 px-6">Nama Pelanggan & HP</th>
+                                    <th class="py-3.5 px-6">Detail Pesanan PO</th>
+                                    <th class="py-3.5 px-6">Total Belanja</th>
+                                    <th class="py-3.5 px-6">Bank Transfer</th>
+                                    <th class="py-3.5 px-6 text-center">Bukti Bayar</th>
+                                    <th class="py-3.5 px-6 text-center">Status Pembayaran & DP</th>
+                                    <th class="py-3.5 px-6">Garansi (Countdown Aktif)</th>
+                                    <th class="py-3.5 px-6 text-center">Aksi / Hapus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-customer-table" class="divide-y divide-slate-100 bg-white font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB BARU: DASHBOARD TAMBAH ANGGOTA & ATUR HAK AKSES -->
+            <div id="admin-tab-tambah-anggota" class="space-y-6 hidden">
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-user-plus text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-black text-slate-900">Form Tambah Akun Anggota Baru</h4>
+                            <p class="text-xs text-slate-500">Buat akun untuk staf/anggota dan tentukan hak akses pengeditan masing-masing.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Username Anggota Baru</label>
+                                <input type="text" id="new-member-username" placeholder="Cth: staff_cctv" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Password Anggota Baru</label>
+                                <input type="password" id="new-member-password" placeholder="Masukkan password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase">Pengaturan Izin Akses Pengeditan (Centang yang Diizinkan):</label>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="perm-product" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+                                    <span class="text-xs font-bold text-slate-800">IZINKAN AKSES TAMBAH dan EDIT PRODUK</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="perm-data-pelanggan" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+                                    <span class="text-xs font-bold text-slate-800">IZINKAN AKSES DATA PELANGGAN</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="perm-po" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+                                    <span class="text-xs font-bold text-slate-800">IZINKAN AKSES PELANGGAN PO / PESAN</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-3">
+                            <button onclick="addNewMemberAccount()" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all">
+                                <i class="fa-solid fa-user-check"></i> Simpan Akun Anggota
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
+                    <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Daftar Akun Anggota Terdaftar</h4>
+                        <span id="admin-member-count" class="text-xs bg-indigo-100 text-indigo-700 font-extrabold px-3 py-1 rounded-full">0 Anggota</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-white border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                <tr>
+                                    <th class="py-3 px-6">Username</th>
+                                    <th class="py-3 px-6 text-center">Akses Tambah/Edit Produk</th>
+                                    <th class="py-3 px-6 text-center">Akses Data Pelanggan</th>
+                                    <th class="py-3 px-6 text-center">Akses Pelanggan PO/Pesan</th>
+                                    <th class="py-3 px-6 text-center">Aksi / Hapus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-member-table" class="divide-y divide-slate-100 bg-white font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: PENGATURAN LOGO & BOOTSTRAP TEMA -->
+            <div id="admin-tab-pengaturan" class="space-y-8 hidden">
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-image text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-black text-slate-900">Manajemen Logo Website</h4>
+                            <p class="text-xs text-slate-500">Logo yang diupload akan otomatis mengubah Icon Tab, Header, Footer, dan Faktur.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Upload File Logo Baru (PNG / JPG)</label>
+                                <input type="file" id="logo-file-input" accept="image/*" onchange="previewLogoFile(event)" class="w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-sky-600 file:text-white cursor-pointer border border-slate-200 rounded-2xl p-2 bg-slate-50">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Atau Masukkan URL Gambar Logo</label>
+                                <input type="url" id="logo-url-input" placeholder="https://..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-sky-500">
+                            </div>
+                            <div class="flex gap-3 pt-2">
+                                <button onclick="saveLogoSettings()" class="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-sky-600/30 flex items-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan & Terapkan Logo
+                                </button>
+                                <button onclick="resetLogoDefault()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold">
+                                    Reset Default
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center flex flex-col items-center justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Pratinjau Logo Saat Ini</span>
+                            <img id="logo-preview-img" src="https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265" class="w-24 h-24 object-cover rounded-full ring-4 ring-sky-500/20 shadow-md mb-2">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-palette text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-black text-slate-900">Upload Tema Desain (.zip / .css)</h4>
+                            <p class="text-xs text-slate-500">Ekstrak ZIP berisi index.html & CSS dari template apapun!</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Upload ZIP Fullstack atau File CSS</label>
+                                <input type="file" id="bootstrap-file-input" accept=".css, .zip" onchange="handleBootstrapFileUpload(event)" class="w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white cursor-pointer border border-slate-200 rounded-2xl p-2 bg-slate-50">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Atau Masukkan URL CDN CSS</label>
+                                <input type="url" id="bootstrap-url-input" placeholder="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div class="flex gap-3 pt-2">
+                                <button id="btn-save-design" onclick="saveBootstrapSettings()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all">
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Desain
+                                </button>
+                                <button onclick="resetBootstrapSettings()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition-all">
+                                    Kembali ke Default
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block"><i class="fa-solid fa-info-circle text-indigo-500 mr-1"></i> Status Log Injeksi</span>
+                                <textarea id="bootstrap-css-code-preview" rows="5" readonly class="w-full p-3 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-xl border border-slate-800 resize-none" placeholder="Menunggu file upload..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Preview Gambar Bukti Pembayaran -->
+    <div id="image-modal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md" onclick="closeImageModal()">
+        <div class="relative bg-white p-3 rounded-3xl max-w-lg w-full shadow-2xl animate-pop-in" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3 px-2">
+                <h4 class="font-bold text-slate-900 text-xs uppercase"><i class="fa-solid fa-receipt text-sky-600 mr-2"></i> Bukti Pembayaran Pelanggan</h4>
+                <button onclick="closeImageModal()" class="text-slate-400 hover:text-rose-600 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <img id="modal-preview-img" src="" alt="Bukti Pembayaran" class="w-full max-h-[75vh] object-contain rounded-2xl bg-slate-100 border border-slate-200">
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        let db = null;
+        let products = [];
+        let customers = JSON.parse(localStorage.getItem('st_customers_v3')) || [];
+        let members = JSON.parse(localStorage.getItem('st_members_v3')) || [];
+        
+        let activeUserRole = 'admin'; 
+        let currentMemberPermissions = { permProduct: true, permDataPelanggan: true, permPO: true };
+
+        let currentLogoUrl = localStorage.getItem('st_logo_v1') || 'https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265';
+        
+        let tempUploadedLogoBase64 = null;
+        let tempUploadedCssText = null;
+        let tempUploadedHtmlText = null;
+
+        const notifSound = new Audio('https://actions.google.com/sounds/v1/alarms/positive_notification.ogg');
+        let isFirstLoadCustomers = true;
+        let previousCustomerCount = 0;
+        let originalTitle = document.title;
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCEwFwDcxonHt0EB3bl2f4TyusIt4nzuGw",
+                authDomain: "tekunin-3d037.firebaseapp.com",
+                databaseURL: "https://tekunin-3d037-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "tekunin-3d037"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+
+            db.ref('products').on('value', (snapshot) => {
+                const data = snapshot.val();
+                products = data ? Object.keys(data).map(key => ({...data[key], firebaseKey: key})).reverse() : [];
+                if (document.getElementById('admin-product-table')) renderAdminTable();
+            });
+
+            db.ref('customers').on('value', (snapshot) => {
+                const data = snapshot.val();
+                let newCustomers = data ? Object.keys(data).map(key => ({...data[key], firebaseKey: key})).reverse() : [];
+                
+                if (!isFirstLoadCustomers && newCustomers.length > previousCustomerCount) {
+                    notifSound.play().catch(e => console.log("Autoplay audio diblokir"));
+                    if (activeUserRole === 'admin' || activeUserRole === 'member') {
+                        showToast('🔔 Pesanan PO Baru Masuk!', 'info');
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            const latestPO = newCustomers[0];
+                            const notif = new Notification("Pesanan Baru Masuk! - Tekunin CCTV", {
+                                body: `PO dari ${latestPO.name} senilai ${formatIDR(latestPO.total)}\nKlik untuk membuka dashboard.`,
+                                icon: currentLogoUrl
+                            });
+                            notif.onclick = function() { window.focus(); this.close(); };
+                        }
+                    }
+                    document.title = "(1) Pesanan Baru! - Tekunin CCTV";
+                    setTimeout(() => { document.title = originalTitle; }, 5000);
+                }
+
+                customers = newCustomers;
+                previousCustomerCount = customers.length;
+                isFirstLoadCustomers = false;
+
+                if (document.getElementById('admin-customer-table')) renderCustomerTable();
+                if (document.getElementById('admin-data-pelanggan-table')) renderDataPelangganTable();
+            });
+
+            db.ref('members').on('value', (snapshot) => {
+                const data = snapshot.val();
+                members = data ? Object.keys(data).map(key => ({...data[key], firebaseKey: key})) : [];
+                if (document.getElementById('admin-member-table')) renderMemberTable();
+            });
+
+        } catch (error) {
+            console.warn("Firebase belum terkoneksi. Mode Offline/Lokal Aktif:", error.message);
+            db = null;
+            setTimeout(() => { renderCustomerTable(); renderDataPelangganTable(); renderMemberTable(); }, 100);
+        }
+
+        function saveCustomerData(cust) {
+            if (db && cust.firebaseKey) {
+                let dataToSave = { ...cust };
+                delete dataToSave.firebaseKey;
+                db.ref('customers/' + cust.firebaseKey).update(dataToSave).catch(console.error);
+            } else {
+                localStorage.setItem('st_customers_v3', JSON.stringify(customers));
+                renderCustomerTable();
+                renderDataPelangganTable();
+            }
+        }
+
+        function saveMemberData() {
+            localStorage.setItem('st_members_v3', JSON.stringify(members));
+            renderMemberTable();
+        }
+
+        const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '<i class="fa-solid fa-check text-emerald-400"></i>' : (type === 'error' ? '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>' : '<i class="fa-solid fa-info text-sky-400"></i>');
+            const bgIcon = type === 'success' ? 'bg-emerald-500/20' : (type === 'error' ? 'bg-rose-500/20' : 'bg-sky-500/20');
+            
+            toast.className = `glass-dark text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-in-right pointer-events-auto border border-white/10`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-xl ${bgIcon} flex items-center justify-center text-base">${icon}</div><div><p class="text-xs font-black uppercase tracking-wider">${type === 'success' ? 'Berhasil' : (type==='error'?'Gagal':'Informasi')}</p><p class="text-xs text-slate-300 font-medium">${message}</p></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value.trim();
+            let loginSuccess = false;
+
+            if (u === 'admin' && p === 'P4$$w0rd') {
+                activeUserRole = 'admin';
+                currentMemberPermissions = { permProduct: true, permDataPelanggan: true, permPO: true };
+                showToast('Login Utama Admin Berhasil');
+                loginSuccess = true;
+            } else {
+                const foundMember = members.find(m => m.username === u && m.password === p);
+                if (foundMember) {
+                    activeUserRole = 'member';
+                    currentMemberPermissions = foundMember.perms || { permProduct: false, permDataPelanggan: false, permPO: false };
+                    showToast(`Login Sebagai Anggota: ${foundMember.username}`);
+                    loginSuccess = true;
+                }
+            }
+
+            if (loginSuccess) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                document.getElementById('admin-section').classList.add('flex');
+                
+                openAdminModal(); e.target.reset(); document.getElementById('login-error').classList.add('hidden');
+                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") showToast('Izin Notifikasi Desktop Diberikan', 'info');
+                    });
+                }
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() { 
+            document.getElementById('admin-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.remove('flex');
+            document.getElementById('login-section').classList.remove('hidden');
+            activeUserRole = 'admin'; showToast('Berhasil keluar dari Admin', 'info'); 
+        }
+        
+        function openAdminModal() { 
+            renderAdminTable(); renderCustomerTable(); renderDataPelangganTable(); renderMemberTable(); 
+            switchAdminTab('katalog'); 
+        }
+
+        function switchAdminTab(tab) {
+            ['katalog', 'data-pelanggan', 'pelanggan', 'tambah-anggota', 'pengaturan'].forEach(t => {
+                document.getElementById('admin-tab-'+t).classList.add('hidden');
+                document.getElementById('tab-btn-'+t).className = 'px-4 py-1.5 rounded-lg text-slate-300 hover:text-white transition-all whitespace-nowrap';
+            });
+            document.getElementById('admin-tab-'+tab).classList.remove('hidden');
+            document.getElementById('tab-btn-'+tab).className = 'px-4 py-1.5 rounded-lg bg-sky-600 text-white transition-all whitespace-nowrap';
+            applyRoleRestrictions();
+        }
+
+        function applyRoleRestrictions() {
+            const badge = document.getElementById('admin-user-badge');
+            if (activeUserRole === 'admin') {
+                if (badge) { badge.innerText = "Super Admin"; badge.className = "text-[10px] bg-emerald-600 text-white font-extrabold px-2.5 py-0.5 rounded-full uppercase ml-1"; }
+                document.querySelectorAll('.product-field, .customer-po-field').forEach(el => {
+                    el.disabled = false; el.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+                return;
+            }
+
+            if (badge) { badge.innerText = "Anggota"; badge.className = "text-[10px] bg-amber-600 text-white font-extrabold px-2.5 py-0.5 rounded-full uppercase ml-1"; }
+            
+            document.querySelectorAll('.product-field').forEach(el => {
+                el.disabled = !currentMemberPermissions.permProduct;
+                if (!currentMemberPermissions.permProduct) el.classList.add('opacity-50', 'cursor-not-allowed');
+                else el.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+            document.querySelectorAll('.customer-po-field').forEach(el => {
+                el.disabled = !currentMemberPermissions.permPO;
+                if (!currentMemberPermissions.permPO) el.classList.add('opacity-50', 'cursor-not-allowed');
+                else el.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+        
+        // ---- KATALOG LOGIC ----
+        const listBankOptions = ["BCA", "Mandiri", "BNI", "BRI", "Permata", "CIMB Niaga", "BSI (Syariah)", "Danamon", "Bank Mega", "OVO / E-Wallet", "GoPay / E-Wallet", "Transfer Tunai"];
+
+        function exportCatalogCSV() {
+            if (!products.length) return alert('Katalog kosong!');
+            let csv = "data:text/csv;charset=utf-8,id,name,group,badge,price,image,description\n" + products.map(p => `${p.id},"${p.name}","${p.group}","${p.badge}",${p.price},"${p.image}","${p.description}"`).join("\n");
+            const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "katalog.csv"; document.body.appendChild(link); link.click(); link.remove(); showToast('Export CSV berhasil', 'success');
+        }
+        function exportCustomersCSV() {
+            if (!customers.length) return alert('Data pelanggan kosong!');
+            let csv = "data:text/csv;charset=utf-8,order_id,date,customer_name,phone,address,total,bank,status\n" + customers.map(c => `${c.id},"${c.date}","${c.name}","${c.phone}","${c.address}",${c.total},"${c.bank}","${c.status}"`).join("\n");
+            const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "pelanggan.csv"; document.body.appendChild(link); link.click(); link.remove(); showToast('Export CSV berhasil', 'success');
+        }
+        function importCatalogCSV(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const lines = e.target.result.split(/\r?\n/);
+                let newProds = [];
+                for (let i = 1; i < lines.length; i++) {
+                    let line = lines[i].trim(); if(!line) continue;
+                    let row = []; let inQ = false; let val = "";
+                    for(let char of line) { if(char==='"') inQ=!inQ; else if(char===','&&!inQ) {row.push(val);val="";} else val+=char; } row.push(val);
+                    if(row.length>=7) newProds.push({id:row[0].replace(/^"|"$/g,''), name:row[1].replace(/^"|"$/g,''), group:row[2].replace(/^"|"$/g,''), badge:row[3].replace(/^"|"$/g,''), price:parseFloat(row[4])||0, image:row[5].replace(/^"|"$/g,''), description:row[6].replace(/^"|"$/g,'')});
+                }
+                if(newProds.length>0 && db) { newProds.forEach(p => db.ref('products').push(p)); showToast(`Restore ${newProds.length} produk berhasil`, 'success'); }
+                event.target.value = '';
+            }; reader.readAsText(file);
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-product-table');
+            document.getElementById('admin-product-count').innerText = `${products.length} Data`;
+            if (products.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">Belum ada data.</td></tr>`; return; }
+            
+            const canEdit = activeUserRole === 'admin' || currentMemberPermissions.permProduct;
+
+            tbody.innerHTML = products.map(prod => `
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    <td class="py-3 px-6"><img src="${prod.image}" class="w-10 h-10 object-cover rounded-xl bg-slate-100"></td>
+                    <td class="py-3 px-6"><p class="font-bold text-slate-900">${prod.name}</p><span class="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded font-bold uppercase mt-1 inline-block">${prod.group || 'Lainnya'}</span></td>
+                    <td class="py-3 px-6 font-extrabold text-slate-900">${formatIDR(prod.price)}</td>
+                    <td class="py-3 px-6 text-center">
+                        ${canEdit ? `<div class="flex items-center justify-center gap-2">
+                            <button onclick="editProduct('${prod.id}', '${prod.firebaseKey || ''}')" class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteProduct('${prod.firebaseKey || ''}')" class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>` : `<span class="text-[11px] text-slate-400 italic">Hanya Lihat</span>`}
+                    </td>
+                </tr>`).join('');
+        }
+
+        function resetAdminForm() {
+            document.getElementById('edit-product-id').value = ''; document.getElementById('edit-product-id').removeAttribute('data-firebase-key');
+            ['admin-name','admin-group','admin-badge','admin-price','admin-image','admin-file-upload','admin-desc'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('admin-form-title').innerText = 'Tambah Produk Baru'; document.getElementById('admin-cancel-edit').classList.add('hidden');
+        }
+
+        function saveAdminProduct() {
+            if (activeUserRole === 'member' && !currentMemberPermissions.permProduct) return alert("Anda tidak memiliki izin!");
+            const editId = document.getElementById('edit-product-id').value; const fKey = document.getElementById('edit-product-id').getAttribute('data-firebase-key');
+            const data = { name: document.getElementById('admin-name').value.trim(), group: document.getElementById('admin-group').value.trim()||'Lainnya', badge: document.getElementById('admin-badge').value.trim()||'Tersedia', price: parseFloat(document.getElementById('admin-price').value), desc: document.getElementById('admin-desc').value.trim(), urlImg: document.getElementById('admin-image').value.trim() };
+            if (!data.name || isNaN(data.price) || !data.desc) return alert('Nama, harga, dan deskripsi wajib diisi!');
+
+            const processSave = (imgStr) => {
+                if (!db) return alert("Firebase terputus!");
+                let imgToSave = imgStr || data.urlImg || (editId ? products.find(p=>p.id===editId)?.image : 'https://images.unsplash.com/photo-1557324232-b8917d3c3dcb?q=80&w=800&auto=format&fit=crop');
+                
+                if (editId) {
+                    if (fKey && fKey !== "undefined") db.ref('products/' + fKey).update({ id: editId, name: data.name, group: data.group, badge: data.badge, price: data.price, image: imgToSave, description: data.desc }).then(() => { showToast('Diperbarui'); resetAdminForm(); });
+                } else {
+                    db.ref('products').push({ id: 'PROD-' + Math.random().toString(36).substr(2, 6).toUpperCase(), name: data.name, group: data.group, badge: data.badge, price: data.price, image: imgToSave, description: data.desc }).then(() => { showToast('Ditambahkan'); resetAdminForm(); });
+                }
+            };
+
+            const file = document.getElementById('admin-file-upload').files[0];
+            if (file) { const reader = new FileReader(); reader.onload = e => processSave(e.target.result); reader.readAsDataURL(file); } else processSave(null);
+        }
+        function editProduct(id, fKey) {
+            if (activeUserRole === 'member' && !currentMemberPermissions.permProduct) return alert("Akses diedit ditolak!");
+            const p = products.find(x => x.id === id); if(!p) return;
+            document.getElementById('edit-product-id').value = p.id; document.getElementById('edit-product-id').setAttribute('data-firebase-key', fKey || '');
+            document.getElementById('admin-name').value = p.name; document.getElementById('admin-group').value = p.group; document.getElementById('admin-badge').value = p.badge; document.getElementById('admin-price').value = p.price; document.getElementById('admin-desc').value = p.description;
+            document.getElementById('admin-form-title').innerText = `Edit: ${p.name}`; document.getElementById('admin-cancel-edit').classList.remove('hidden');
+        }
+        function deleteProduct(fKey) { 
+            if (activeUserRole === 'member' && !currentMemberPermissions.permProduct) return alert("Akses hapus ditolak!");
+            if(db && fKey && confirm('Hapus permanen?')) db.ref('products/'+fKey).remove().then(()=>showToast('Dihapus')); 
+        }
+
+        // ---- REKAP PELANGGAN ----
+        function renderDataPelangganTable() {
+            const tbody = document.getElementById('admin-data-pelanggan-table'); if(!tbody) return;
+            let customerMap = {};
+            customers.forEach(c => {
+                let key = (c.phone || '').trim() || c.name;
+                if (!customerMap[key]) {
+                    customerMap[key] = { name: c.name, phone: c.phone, address: c.address, totalOrders: 0, totalSpent: 0, lastOrderDate: c.date };
+                }
+                customerMap[key].totalOrders += 1; customerMap[key].totalSpent += (c.total || 0);
+            });
+            const uniqueCustomers = Object.values(customerMap);
+            document.getElementById('data-pelanggan-count').innerText = `${uniqueCustomers.length} Pelanggan Aktif`;
+            if (uniqueCustomers.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">Belum ada data pelanggan terdaftar secara otomatis.</td></tr>`; return; }
+
+            tbody.innerHTML = uniqueCustomers.map(c => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="py-4 px-6 font-bold text-slate-900">${c.name}</td>
+                    <td class="py-4 px-6 font-bold text-sky-600"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1"></i>${c.phone}</td>
+                    <td class="py-4 px-6 text-slate-600 max-w-xs truncate">${c.address}</td>
+                    <td class="py-4 px-6 text-center"><span class="bg-sky-50 text-sky-700 font-extrabold px-3 py-1 rounded-full text-[11px]">${c.totalOrders} Pesanan</span></td>
+                    <td class="py-4 px-6 text-right font-black text-slate-900">${formatIDR(c.totalSpent)}</td>
+                    <td class="py-4 px-6 text-center text-slate-500 text-[11px] font-semibold">${c.lastOrderDate}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ---- MANAJEMEN PO ----
+        function renderCustomerTable() {
+            const tbody = document.getElementById('admin-customer-table'); document.getElementById('admin-customer-count').innerText = `${customers.length} Pesanan PO`;
+            if (customers.length === 0) { tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center">Belum ada pelanggan</td></tr>`; return; }
+            const now = new Date();
+            const canEditPO = activeUserRole === 'admin' || currentMemberPermissions.permPO;
+            const disabledAttr = canEditPO ? '' : 'disabled';
+
+            tbody.innerHTML = customers.map((c, i) => {
+                let itemsList = (c.items||[]).map(x=>`${x.name} (x${x.qty})`).join(', ');
+                let proof = c.proofImage ? `<img src="${c.proofImage}" onclick="openImageModal('${c.proofImage}')" class="w-10 h-10 object-cover rounded-xl cursor-pointer">` : 
+                    (canEditPO ? `<label class="px-3 py-1.5 bg-sky-50 text-sky-700 rounded-xl text-[11px] font-extrabold cursor-pointer customer-po-field"><i class="fa-solid fa-upload"></i><input type="file" accept="image/*" class="hidden" onchange="uploadProofPayment(event, ${i})"></label>` : `<span class="text-[10px] text-slate-400">Belum Ada</span>`);
+                
+                let dpHtml = c.status==='DP' ? `<div class="mt-2 text-left bg-amber-50 p-1.5 rounded"><label class="text-[9px] font-bold text-amber-700 block mb-0.5">Nominal DP:</label><input type="number" value="${c.dpAmount||(c.total/2)}" ${disabledAttr} onchange="updateCustomerDpAmount(${i}, this.value)" class="w-full text-xs p-1 border border-amber-200 rounded font-bold text-amber-900 bg-white customer-po-field"></div>` : '';
+                let wrntyHtml = `<span class="text-[10px] text-slate-400">Non-Aktif (Belum Lunas)</span>`;
+                if(c.status==='LUNAS') {
+                    wrntyHtml = `<select ${disabledAttr} onchange="updateCustomerWarranty(${i}, this.value)" class="text-xs p-1 border rounded w-full max-w-[125px] bg-sky-50 font-bold text-sky-700 customer-po-field"><option value="" ${!c.warrantyType ? 'selected' : ''}>Pilih Garansi</option><option value="MAINTENANCE" ${c.warrantyType==='MAINTENANCE' ? 'selected' : ''}>Maintnc 3 Bln</option><option value="PRODUK" ${c.warrantyType==='PRODUK' ? 'selected' : ''}>Produk 1 Thn</option><option value="FULL" ${c.warrantyType==='FULL' ? 'selected' : ''}>Full (P 1T & M 3B)</option></select>`;
+                    if (c.warrantyType && c.warrantyStartDate) {
+                        let startDate = new Date(c.warrantyStartDate);
+                        let endM = new Date(startDate.getTime()); endM.setMonth(endM.getMonth() + 3);
+                        let endP = new Date(startDate.getTime()); endP.setFullYear(endP.getFullYear() + 1);
+                        let diffM = Math.ceil((endM - now) / 86400000); let diffP = Math.ceil((endP - now) / 86400000);
+                        if (c.warrantyType === 'MAINTENANCE') wrntyHtml += `<div class="text-[10px] text-emerald-600 font-bold mt-1">M: ${diffM > 0 ? diffM+' Hari' : 'Habis'}</div>`;
+                        else if (c.warrantyType === 'PRODUK') wrntyHtml += `<div class="text-[10px] text-emerald-600 font-bold mt-1">P: ${diffP > 0 ? diffP+' Hari' : 'Habis'}</div>`;
+                        else if (c.warrantyType === 'FULL') wrntyHtml += `<div class="text-[9px] text-emerald-600 font-bold mt-1">M: ${diffM > 0 ? diffM+' Hr' : 'Habis'}<br>P: ${diffP > 0 ? diffP+' Hr' : 'Habis'}</div>`;
+                    }
+                }
+                
+                return `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-4 px-6 text-xs"><b class="block">${c.id}</b>${c.date}</td><td class="py-4 px-6 text-xs"><b>${c.name}</b><br>${c.phone}</td><td class="py-4 px-6 text-xs max-w-[150px] truncate">${itemsList}</td><td class="py-4 px-6 font-bold text-xs">${formatIDR(c.total)}</td><td class="py-4 px-6"><select ${disabledAttr} onchange="updateCustomerBank(${i}, this.value)" class="text-xs p-1 border rounded customer-po-field">${listBankOptions.map(b=>`<option ${c.bank===b?'selected':''}>${b}</option>`).join('')}</select></td><td class="py-4 px-6 text-center">${proof}</td><td class="py-4 px-6"><select ${disabledAttr} onchange="updateCustomerStatus(${i}, this.value)" class="text-xs p-1 border rounded customer-po-field"><option ${c.status==='BELUM LUNAS'?'selected':''}>BELUM LUNAS</option><option ${c.status==='LUNAS'?'selected':''}>LUNAS</option><option ${c.status==='DP'?'selected':''}>DP</option></select>${dpHtml}</td><td class="py-4 px-6 text-center">${wrntyHtml}</td><td class="py-4 px-6 text-center">
+            <div class="grid grid-cols-2 gap-2 w-40 mx-auto">
+                <button title="Kirim Laporan PO (Ke Admin)" onclick="sendPOReportWA(${i})" class="flex flex-col items-center justify-center gap-1 p-2 bg-slate-50 hover:bg-slate-700 text-slate-600 hover:text-white border border-slate-200 hover:border-slate-700 rounded-xl transition-all shadow-sm group">
+                    <i class="fa-solid fa-file-invoice text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Laporan</span>
+                </button>
+                <button title="Kirim Tagihan (Ke Admin)" onclick="sendInvoiceToAdminWA(${i})" class="flex flex-col items-center justify-center gap-1 p-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-xl transition-all shadow-sm group customer-po-field">
+                    <i class="fa-brands fa-whatsapp text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Tagihan</span>
+                </button>
+                <button title="Cetak Garansi (Ke Admin)" onclick="sendWarrantyWA(${i})" class="flex flex-col items-center justify-center gap-1 p-2 bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 rounded-xl transition-all shadow-sm group">
+                    <i class="fa-solid fa-file-shield text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Garansi</span>
+                </button>
+                ${canEditPO ? `<button title="Hapus Pesanan" onclick="deleteCustomerOrder(${i})" class="flex flex-col items-center justify-center gap-1 p-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 rounded-xl transition-all shadow-sm group customer-po-field">
+                    <i class="fa-solid fa-trash-can text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Hapus</span>
+                </button>` : ''}
+            </div>
+        </td></tr>`;
+            }).join('');
+        }
+        function updateCustomerBank(i, b) { customers[i].bank = b; saveCustomerData(customers[i]); showToast('Bank diubah'); }
+        function updateCustomerDpAmount(i, a) { customers[i].dpAmount = parseFloat(a) || 0; saveCustomerData(customers[i]); showToast('Nominal DP diperbarui'); }
+        function uploadProofPayment(e, i) { const r = new FileReader(); r.onload = ev => { customers[i].proofImage = ev.target.result; saveCustomerData(customers[i]); }; if(e.target.files[0]) r.readAsDataURL(e.target.files[0]); }
+        function openImageModal(url) { document.getElementById('modal-preview-img').src = url; document.getElementById('image-modal').style.display = 'flex'; }
+        function closeImageModal() { document.getElementById('image-modal').style.display = 'none'; }
+        function updateCustomerStatus(i, s) { customers[i].status = s; if(s==='DP' && !customers[i].dpAmount) customers[i].dpAmount = customers[i].total / 2; if(s==='LUNAS') customers[i].lunasDate = new Date().toISOString(); saveCustomerData(customers[i]); renderCustomerTable(); showToast('Status diubah'); }
+        function deleteCustomerOrder(i) { if(confirm('Hapus pesanan ini?')) { if(db&&customers[i].firebaseKey) db.ref('customers/'+customers[i].firebaseKey).remove(); else { customers.splice(i,1); saveCustomerData({}); } showToast('Dihapus'); } }
+        function updateCustomerWarranty(i, val) { customers[i].warrantyType = val; if (val && !customers[i].warrantyStartDate) { customers[i].warrantyStartDate = new Date().toISOString(); } else if (!val) { customers[i].warrantyStartDate = null; } saveCustomerData(customers[i]); showToast('Garansi Diperbarui'); }
+        function formatDate(isoString) { if (!isoString) return '-'; const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; const d = new Date(isoString); return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`; }
+
+        function sendInvoiceToAdminWA(i) {
+            let c = customers[i];
+            let itemsList = (c.items||[]).map((x, idx) => `${idx+1}. ${x.name}\n    > ${x.qty} Unit x ${formatIDR(x.price)} = ${formatIDR(x.price*x.qty)}`).join('\n');
+            let hpAdmin = '6285872024756';
+            
+            // Format link WA agar Admin bisa langsung klik nomor pelanggan
+            let waPelanggan = 'wa.me/' + c.phone.replace(/\D/g, '').replace(/^0/, '62');
+            
+            let msg = `=== PERMINTAAN KIRIM TAGIHAN ===\n\nMohon Admin memproses tagihan untuk pelanggan berikut:\n\n[ DATA PELANGGAN ]\n- No. PO : ${c.id}\n- Tanggal : ${c.date}\n- Nama : *${c.name}*\n- Whatsapp : ${waPelanggan}\n- Alamat : ${c.address}\n\n[ RINCIAN PRODUK ]\n${itemsList}\n\n*TOTAL TAGIHAN : ${formatIDR(c.total)}*\n\n_Mohon segera teruskan pesan tagihan ke pelanggan._`;
+            
+            window.open(`https://wa.me/${hpAdmin}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function sendWarrantyWA(i) {
+            let c = customers[i]; if (!c.warrantyType) { alert("Silakan pilih tipe garansi terlebih dahulu untuk pelanggan ini."); return; }
+            let itemsList = (c.items||[]).map(x=>`- ${x.name} (x${x.qty})`).join('\n'); 
+            let hpAdmin = '6285872024756'; 
+            let typeLabel = c.warrantyType === 'FULL' ? 'MENYELURUH (PRODUK & MAINTENANCE)' : c.warrantyType;
+            
+            let expM = '', expP = ''; 
+            if (c.warrantyStartDate) { 
+                let s = new Date(c.warrantyStartDate); 
+                let eM = new Date(s.getTime()); eM.setMonth(eM.getMonth() + 3); 
+                let eP = new Date(s.getTime()); eP.setFullYear(eP.getFullYear() + 1); 
+                expM = formatDate(eM.toISOString()); expP = formatDate(eP.toISOString()); 
+            }
+            
+            let msg = `=== SERTIFIKAT GARANSI RESMI ===\n*Tekunin CCTV - Security Solutions*\n\n[ INFO TRANSAKSI ]\n- No. PO : ${c.id}\n- Tanggal : ${c.date}\n\n[ IDENTITAS PELANGGAN ]\n- Nama : ${c.name}\n- No. HP : ${c.phone}\n- Alamat : ${c.address}\n\n[ UNIT TERCOVER GARANSI ]\n${itemsList}\n\n*STATUS GARANSI : AKTIF*\n(Tipe: ${typeLabel})\n\n`; 
+            
+            if (c.warrantyType === 'MAINTENANCE') msg += `*BERLAKU S.D :* ${expM}\n> Fasilitas : Gratis layanan & pengecekan kabel/instalasi.`; 
+            else if (c.warrantyType === 'PRODUK') msg += `*BERLAKU S.D :* ${expP}\n> Fasilitas : Pergantian/perbaikan unit keras cacat pabrik.`; 
+            else if (c.warrantyType === 'FULL') msg += `*MAINTENANCE S.D :* ${expM}\n*PRODUK S.D :* ${expP}\n> Fasilitas : Perlindungan menyeluruh unit & layanan instalasi.`;
+            
+            window.open(`https://wa.me/${hpAdmin}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        
+        function sendPOReportWA(i) {
+            let c = customers[i]; 
+            let itemsList = (c.items||[]).map(x=>`- ${x.name}\n   > ${x.qty} x ${formatIDR(x.price)} = ${formatIDR(x.price*x.qty)}`).join('\n'); 
+            
+            let paymentDetailStr = `- Status : *${c.status}*`; 
+            if (c.status === 'DP') { 
+                let currentDp = c.dpAmount || (c.total / 2); 
+                paymentDetailStr += `\n- DP Dibayar : ${formatIDR(currentDp)}\n- Sisa Tagihan : ${formatIDR(c.total - currentDp)}`; 
+            } 
+            
+            let hpAdmin = '6285872024756'; 
+            let statusBukti = c.proofImage ? '[ ADA - Telah Diupload ]' : '[ BELUM ADA ]';
+            
+            let msg = `=== LAPORAN PESANAN (PO) BARU ===\n\n[ INFO PESANAN ]\n- No. PO : ${c.id}\n- Tanggal : ${c.date}\n\n[ INFO PELANGGAN ]\n- Nama : ${c.name}\n- No. HP : ${c.phone}\n- Alamat : ${c.address}\n\n[ DETAIL PRODUK ]\n${itemsList}\n\n[ INFO PEMBAYARAN ]\n- Total Belanja : *${formatIDR(c.total)}*\n- Bank Transfer : ${c.bank || '-'}\n${paymentDetailStr}\n- Bukti Bayar : ${statusBukti}`;
+            
+            window.open(`https://wa.me/${hpAdmin}?text=${encodeURIComponent(msg)}`, '_blank'); 
+        }
+
+        function importCustomersCSV(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const lines = e.target.result.split(/\r?\n/); let newCusts = [];
+                for (let i = 1; i < lines.length; i++) {
+                    let line = lines[i].trim(); if(!line) continue; let row = []; let inQ = false; let val = "";
+                    for(let char of line) { if(char==='"') inQ=!inQ; else if(char===','&&!inQ) {row.push(val);val="";} else val+=char; } row.push(val);
+                    if(row.length >= 8) { newCusts.push({ id: row[0].replace(/^"|"$/g,''), date: row[1].replace(/^"|"$/g,''), name: row[2].replace(/^"|"$/g,''), phone: row[3].replace(/^"|"$/g,''), address: row[4].replace(/^"|"$/g,''), total: parseFloat(row[5]) || 0, bank: row[6].replace(/^"|"$/g,''), status: row[7].replace(/^"|"$/g,''), items: [{name: 'Data Hasil Import (Detail Rinci Disembunyikan)', qty: 1, price: parseFloat(row[5]) || 0}], dpAmount: (parseFloat(row[5]) || 0) / 2 }); }
+                }
+                if(newCusts.length > 0) { if (db) { newCusts.forEach(c => db.ref('customers').push(c)); showToast(`Restore ${newCusts.length} pelanggan (Live) berhasil`, 'success'); } else { customers.unshift(...newCusts); saveCustomerData({}); showToast(`Restore ${newCusts.length} pelanggan (Lokal) berhasil`, 'success'); } }
+                event.target.value = '';
+            }; reader.readAsText(file);
+        }
+
+        // ---- ANGGOTA ----
+        function addNewMemberAccount() {
+            const uName = document.getElementById('new-member-username').value.trim(); const uPass = document.getElementById('new-member-password').value.trim(); if (!uName || !uPass) return alert("Harap isi username dan password anggota!");
+            const newMem = { id: 'MEM-' + Math.random().toString(36).substr(2, 5).toUpperCase(), username: uName, password: uPass, perms: { permProduct: document.getElementById('perm-product').checked, permDataPelanggan: document.getElementById('perm-data-pelanggan').checked, permPO: document.getElementById('perm-po').checked } };
+            if (db) { db.ref('members').push(newMem).then(() => { showToast(`Anggota ${uName} Berhasil Didaftarkan`, 'success'); document.getElementById('new-member-username').value = ''; document.getElementById('new-member-password').value = ''; }); } else { members.push(newMem); saveMemberData(); showToast(`Anggota ${uName} Berhasil Didaftarkan (Lokal)`, 'success'); document.getElementById('new-member-username').value = ''; document.getElementById('new-member-password').value = ''; }
+        }
+
+        function renderMemberTable() {
+            const tbody = document.getElementById('admin-member-table'); if (!tbody) return;
+            document.getElementById('admin-member-count').innerText = `${members.length} Anggota`;
+            if (members.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">Belum ada akun anggota yang terdaftar.</td></tr>`; return; }
+            tbody.innerHTML = members.map((m, index) => `
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    <td class="py-3 px-6 font-bold text-slate-900">${m.username}</td>
+                    <td class="py-3 px-6 text-center">${m.perms.permProduct ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-bold text-[10px]">IZIN EDIT</span>' : '<span class="px-2 py-1 bg-slate-100 text-slate-500 rounded-full font-bold text-[10px]">READ ONLY</span>'}</td>
+                    <td class="py-3 px-6 text-center">${m.perms.permDataPelanggan ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-bold text-[10px]">IZIN AKSES</span>' : '<span class="px-2 py-1 bg-slate-100 text-slate-500 rounded-full font-bold text-[10px]">READ ONLY</span>'}</td>
+                    <td class="py-3 px-6 text-center">${m.perms.permPO ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-bold text-[10px]">IZIN EDIT</span>' : '<span class="px-2 py-1 bg-slate-100 text-slate-500 rounded-full font-bold text-[10px]">READ ONLY</span>'}</td>
+                    <td class="py-3 px-6 text-center"><button onclick="deleteMember('${m.firebaseKey || index}')" class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all"><i class="fa-solid fa-trash text-xs"></i></button></td>
+                </tr>`).join('');
+        }
+
+        function deleteMember(key) {
+            if (!confirm('Hapus akun anggota ini?')) return;
+            if (db && isNaN(key)) { db.ref('members/' + key).remove().then(() => showToast('Anggota dihapus')); } else { members.splice(key, 1); saveMemberData(); showToast('Anggota dihapus'); }
+        }
+
+        // ---- SETTINGS ----
+        async function handleBootstrapFileUpload(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const btnSave = document.getElementById('btn-save-design');
+            if (file.name.toLowerCase().endsWith('.zip')) {
+                if (typeof JSZip === 'undefined') return alert('Library JSZip belum termuat.');
+                if(btnSave) { btnSave.disabled = true; btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Mengekstrak...'; }
+                document.getElementById('bootstrap-css-code-preview').value = "Proses Ekstraksi File ZIP...";
+                try {
+                    const zip = await JSZip.loadAsync(file); let cssPromises = []; let htmlFile = null;
+                    zip.forEach((relPath, zipEntry) => { if (!zipEntry.dir) { if (zipEntry.name.toLowerCase().endsWith('.css')) cssPromises.push(zipEntry.async('string')); else if (zipEntry.name.toLowerCase().endsWith('index.html')) htmlFile = zipEntry; } });
+                    const cssContents = await Promise.all(cssPromises);
+                    if (cssContents.length > 0) { tempUploadedCssText = cssContents.join('\n\n/* --- CSS Ekstraksi Baru --- */\n\n'); document.getElementById('bootstrap-url-input').value = ''; document.getElementById('bootstrap-css-code-preview').value = `Total ${cssContents.length} CSS siap disimpan.\n` + tempUploadedCssText.slice(0, 500) + '...'; }
+                    if (htmlFile) { const rawHtml = await htmlFile.async('string'); const doc = new DOMParser().parseFromString(rawHtml, 'text/html'); tempUploadedHtmlText = doc.body ? doc.body.innerHTML : rawHtml; showToast('HTML & CSS siap disimpan', 'success'); }
+                } catch (err) { showToast('Gagal membaca ZIP: ' + err.message, 'error'); } finally { if(btnSave) { btnSave.disabled = false; btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Desain'; } }
+            } else {
+                const reader = new FileReader(); reader.onload = e => { tempUploadedCssText = e.target.result; tempUploadedHtmlText = null; document.getElementById('bootstrap-url-input').value = ''; document.getElementById('bootstrap-css-code-preview').value = tempUploadedCssText.slice(0, 1000) + '...'; }; reader.readAsText(file);
+            }
+        }
+
+        function saveBootstrapSettings() {
+            const urlInput = document.getElementById('bootstrap-url-input').value.trim();
+            let finalUrl = urlInput || ''; let finalCss = (tempUploadedCssText !== null) ? tempUploadedCssText : (customBootstrapCss || ''); let finalHtml = (tempUploadedHtmlText !== null) ? tempUploadedHtmlText : (customHtmlTemplate || '');
+            if (db) { db.ref('settings/bootstrap').set({ url: finalUrl, css: finalCss, html: finalHtml }).then(() => { tempUploadedHtmlText = null; tempUploadedCssText = null; showToast('Tema & Desain HTML berhasil disimpan secara Live!', 'success'); }).catch(err => showToast('Gagal simpan ke database: '+err.message, 'error')); } else { tempUploadedHtmlText = null; tempUploadedCssText = null; showToast('Gagal (Offline)', 'error'); }
+        }
+
+        function resetBootstrapSettings() {
+            tempUploadedCssText = null; tempUploadedHtmlText = null;
+            document.getElementById('bootstrap-file-input').value = ''; document.getElementById('bootstrap-url-input').value = '';
+            if (db) db.ref('settings/bootstrap').remove(); showToast('Desain Website dikembalikan ke Versi Awal Default', 'success');
+        }
+
+        function previewLogoFile(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = e => { tempUploadedLogoBase64 = e.target.result; document.getElementById('logo-preview-img').src = tempUploadedLogoBase64; }; reader.readAsDataURL(file);
+        }
+
+        function saveLogoSettings() {
+            const urlIn = document.getElementById('logo-url-input').value.trim(); let finalLogo = tempUploadedLogoBase64 || urlIn || currentLogoUrl;
+            if (db) db.ref('settings/logo').set(finalLogo).then(() => showToast('Logo tersimpan secara Live!', 'success')); tempUploadedLogoBase64 = null;
+        }
+
+        function resetLogoDefault() {
+            if (db) db.ref('settings/logo').remove(); showToast('Logo kembali ke default', 'success');
+        }
+    </script>
+</body>
+</html>

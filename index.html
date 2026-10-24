@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tekunin CCTV | Solusi Sistem Keamanan Profesional JABODETABEK</title>
+    
+    <link id="site-favicon" rel="icon" type="image/png" href="https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265">
+    <link id="bootstrap-css-link" rel="stylesheet" href="">
+    <style id="custom-bootstrap-style"></style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0f6ff', 100: '#e0effe', 500: '#0284c7', 600: '#0284c7', 900: '#0c4a6e', 950: '#082f49' },
+                        accent: '#10b981', 
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'float': 'float 4s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .glass-dark { background: rgba(8, 47, 73, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+
+        @media print {
+            @page { margin: 0; size: A4 portrait; }
+            body { background: white !important; -webkit-print-color-adjust: exact; margin: 0; }
+            body > *:not(#checkout-modal) { display: none !important; }
+            #checkout-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block !important; background: white !important; z-index: 9999; }
+            #checkout-modal-bg, .print-hide { display: none !important; }
+            #checkout-content { box-shadow: none !important; border: none !important; transform: none !important; opacity: 1 !important; width: 100% !important; max-width: 100% !important; max-height: none !important; margin: 0 !important; border-radius: 0 !important; }
+            #checkout-form-section { display: none !important; }
+            #invoice-printable { width: 100% !important; padding: 2cm !important; margin: 0 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen selection:bg-sky-500 selection:text-white">
+
+    <div id="main-design">
+        <!-- Navbar -->
+        <nav id="navbar" class="fixed w-full z-40 top-0 transition-all duration-300 glass-nav py-3.5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-12">
+                    <a href="#beranda" class="flex items-center gap-3 group">
+                        <img id="navbar-logo" src="https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265" alt="Logo Tekunin" class="w-11 h-11 object-cover rounded-full shadow-md ring-2 ring-sky-500/20 group-hover:rotate-6 transition-transform duration-300">
+                        <div class="flex flex-col">
+                            <span class="font-black text-xl tracking-tight text-slate-900 leading-none">TEKUNIN<span class="text-sky-600"> CCTV</span></span>
+                            <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-0.5">Security Solutions</span>
+                        </div>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-1 bg-slate-100/80 px-3 py-1.5 rounded-full border border-slate-200/60 shadow-inner">
+                        <a href="#beranda" class="px-5 py-2 text-xs font-bold text-slate-600 hover:text-sky-600 hover:bg-white rounded-full transition-all shadow-sm">Beranda</a>
+                        <a href="#produk" class="px-5 py-2 text-xs font-bold text-slate-600 hover:text-sky-600 hover:bg-white rounded-full transition-all">Produk</a>
+                        <a href="#tentang" class="px-5 py-2 text-xs font-bold text-slate-600 hover:text-sky-600 hover:bg-white rounded-full transition-all">Tentang Kami</a>
+                    </div>
+                    <button onclick="toggleCart()" class="relative p-2.5 text-slate-700 hover:text-sky-600 transition-all focus:outline-none group bg-white shadow-sm rounded-2xl w-12 h-12 flex items-center justify-center border border-slate-200/80 hover:border-sky-300 hover:shadow-md active:scale-95">
+                        <i class="fa-solid fa-cart-shopping text-lg group-hover:scale-110 transition-transform"></i>
+                        <span class="cart-badge-indicator absolute -top-1 -right-1 transform bg-emerald-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-lg transition-all scale-0 origin-center ring-2 ring-white">0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header id="beranda" class="relative pt-36 pb-24 lg:pt-48 lg:pb-36 overflow-hidden flex items-center min-h-[92vh] bg-gradient-to-br from-slate-950 via-sky-950 to-slate-900 text-white">
+            <div class="absolute inset-0 z-0 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1557324232-b8917d3c3dcb?q=80&w=2000&auto=format&fit=crop" alt="CCTV Background" class="w-full h-full object-cover opacity-15 mix-blend-luminosity scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/60"></div>
+            </div>
+            <div class="absolute top-1/4 right-10 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+            <div class="absolute bottom-10 left-10 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+                <div class="max-w-3xl">
+                    <div class="inline-flex items-center gap-2.5 px-4 py-2 mb-6 text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 rounded-full backdrop-blur-md shadow-lg animate-fade-in-up" style="animation-delay: 0.1s;">
+                        <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span>
+                        Layanan Pasang & Maintenance CCTV JABODETABEK 24/7
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 leading-[1.12] animate-fade-in-up" style="animation-delay: 0.2s;">
+                        PANTAU PROPERTI ANDA DENGAN JELAS, <br />
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400">Kapan Saja & Di Mana Saja.</span>
+                    </h1>
+                    <p class="text-slate-300 text-base sm:text-lg mb-10 leading-relaxed max-w-2xl font-light animate-fade-in-up" style="animation-delay: 0.3s;">
+                        Solusi lengkap sistem keamanan beresolusi tinggi dengan garansi resmi. Pilih paket CCTV terbaik Anda dan nikmati proses pemesanan instan terintegrasi sistem faktur profesional.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 animate-fade-in-up" style="animation-delay: 0.4s;">
+                        <button onclick="document.getElementById('produk').scrollIntoView()" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold px-8 py-4 rounded-2xl shadow-xl shadow-sky-600/30 transition-all hover:-translate-y-0.5 active:scale-95 group">
+                            <i class="fa-solid fa-bag-shopping text-sky-200 group-hover:scale-110 transition-transform"></i> Lihat Katalog Paket
+                        </button>
+                        <a href="#tentang" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 font-bold px-8 py-4 rounded-2xl backdrop-blur-md transition-all hover:-translate-y-0.5">
+                            Tentang Kami
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Produk Section -->
+        <section id="produk" class="py-24 bg-slate-100/60 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-16">
+                    <span class="text-sky-600 font-black tracking-widest uppercase text-xs mb-3 block px-3 py-1 bg-sky-50 rounded-full w-max mx-auto border border-sky-100">Katalog Unggulan</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">Pilihan Paket CCTV Terbaik</h2>
+                    <p class="text-slate-500 text-base font-medium">Geser slider secara otomatis atau gunakan tombol navigasi panah untuk melihat produk dalam kategori merek.</p>
+                </div>
+                <div id="product-container" class="space-y-16"></div>
+            </div>
+        </section>
+
+        <!-- Tentang Section -->
+        <section id="tentang" class="py-24 bg-white border-y border-slate-200/60 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
+                <div class="lg:w-1/2 relative group">
+                    <div class="absolute inset-0 bg-sky-600 rounded-3xl translate-x-4 translate-y-4 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform duration-500 -z-10 opacity-20"></div>
+                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop" alt="Instalasi CCTV" class="rounded-3xl shadow-2xl z-10 relative object-cover h-[480px] w-full border border-slate-100">
+                </div>
+                <div class="lg:w-1/2 text-center lg:text-left">
+                    <span class="text-sky-600 font-black tracking-widest uppercase text-xs mb-3 block">Profesional & Berpengalaman</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-6 tracking-tight">Standar Pemasangan Kualitas Tinggi</h2>
+                    <p class="text-slate-600 leading-relaxed mb-8 text-base font-medium">
+                        Teknisi ahli Tekunin CCTV berpengalaman dalam instalasi gedung, kantor, ruko, hingga perumahan. Kami menjamin kerapian jalur kabel serta ketepatan sudut pandang kamera demi meminimalisir sudut mati (<b>Blind Spot</b>).
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center lg:text-left">
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:border-sky-300 transition-all">
+                            <h3 class="text-3xl font-black text-sky-600 mb-1">8+</h3>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Tahun Pengalaman</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:border-sky-300 transition-all">
+                            <h3 class="text-3xl font-black text-sky-600 mb-1">100%</h3>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Produk Original</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:border-sky-300 transition-all">
+                            <h3 class="text-3xl font-black text-sky-600 mb-1">1 Thn</h3>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Garansi Resmi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-slate-950 pt-20 pb-10 text-slate-400 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 border-b border-slate-800 pb-16">
+                    <div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <img id="footer-logo" src="https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265" alt="Logo Tekunin" class="w-12 h-12 object-cover rounded-full ring-2 ring-sky-500/30">
+                            <div>
+                                <span class="font-black text-2xl text-white tracking-tight block">TEKUNIN CCTV</span>
+                                <span class="text-xs tracking-widest uppercase text-sky-400 font-semibold">Security System Solutions</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed font-medium">Penyedia dan spesialis instalasi sistem keamanan CCTV terbaik di Jabodetabek dengan jaminan perangkat original dan garansi resmi.</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-extrabold text-sm uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-location-dot text-sky-500"></i> Alamat Toko / Kantor</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed font-medium">Jl. Terusan H Nawi Malik, Serua, Kec. Bojongsari, Kota Depok, Jawa Barat 16423</p>
+                        <p class="text-[11px] text-slate-500 mt-2 font-semibold">Buka Setiap Hari: 08.00 - 18.00 WIB</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-extrabold text-sm uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-headset text-emerald-500"></i> Layanan Pelanggan (WhatsApp)</h4>
+                        <p class="text-xs text-slate-300 mb-3 font-medium">Hubungi admin kami untuk konsultasi gratis atau pemesanan langsung:</p>
+                        <a href="https://wa.me/6285872024756" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-emerald-600/30 text-xs transition-all active:scale-95">
+                            <i class="fa-brands fa-whatsapp text-base"></i> +62 858-7202-4756 (Chat WA)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center text-xs font-semibold text-slate-500">
+                    <p>&copy; 2026 TEKUNIN CCTV. Hak Cipta Dilindungi Undang-Undang.</p>
+                    <div class="mt-6 md:mt-0">
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Cart Backdrop & Sidebar -->
+    <div id="cart-backdrop" onclick="toggleCart()" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-white shadow-2xl z-[70] transform translate-x-full transition-transform duration-500 flex flex-col">
+        <div class="px-6 py-5 flex items-center justify-between border-b border-slate-100 bg-white/90 backdrop-blur-md z-10">
+            <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2.5"><i class="fa-solid fa-bag-shopping text-sky-600"></i> Keranjang Anda</h2>
+            <button onclick="toggleCart()" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:rotate-90 transition-all p-2 rounded-2xl w-10 h-10 flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto hide-scrollbar p-6 space-y-4 bg-slate-50/50 relative"></div>
+        <div class="p-6 border-t border-slate-100 bg-white shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-10">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <span class="text-slate-400 font-bold text-xs uppercase tracking-wider block mb-1">Total Belanja</span>
+                    <span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Gratis Jasa Instalasi</span>
+                </div>
+                <span id="cart-total" class="text-2xl font-black text-slate-900">Rp 0</span>
+            </div>
+            <button id="btn-checkout" onclick="openCheckout()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-sky-600/20 transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed active:scale-95" disabled>
+                Proses Checkout <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div id="checkout-modal-bg" class="absolute inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" onclick="closeCheckout()"></div>
+        <div id="checkout-content" class="relative bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col transform scale-95 opacity-0 transition-all duration-300 overflow-hidden border border-slate-100">
+            <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white print-hide">
+                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2.5"><i class="fa-solid fa-file-invoice text-sky-600"></i> Konfirmasi Pesanan & Faktur</h2>
+                <button onclick="closeCheckout()" class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 w-10 h-10 rounded-2xl transition-all active:scale-90"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col lg:flex-row bg-slate-50/50">
+                <div id="checkout-form-section" class="w-full lg:w-[40%] p-8 bg-white border-r border-slate-100 print-hide flex flex-col">
+                    <div class="mb-6">
+                        <span class="inline-block px-3 py-1 bg-sky-50 text-sky-600 text-xs font-extrabold rounded-full mb-3 uppercase tracking-wider">Langkah Akhir</span>
+                        <h3 class="text-2xl font-black text-slate-900">Data Pemesan</h3>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Isi data pengiriman/pemasangan. Invoice di sebelah kanan akan menyesuaikan secara real-time.</p>
+                    </div>
+                    <div class="space-y-4 flex-1">
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Nama / Perusahaan</label>
+                            <input type="text" id="buyer-name" placeholder="Cth: PT Sukses Makmur" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-sky-500 font-medium transition-all">
+                        </div>
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Alamat Pemasangan</label>
+                            <textarea id="buyer-address" rows="3" placeholder="Jl. Sudirman No 1..." class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-sky-500 font-medium resize-none transition-all"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">No. HP Pembeli</label>
+                                <input type="tel" id="buyer-phone" placeholder="0812..." class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-sky-500 font-medium transition-all">
+                            </div>
+                            <div class="group">
+                                <label class="block text-xs font-bold text-sky-600 mb-1.5 uppercase tracking-wide">WA Admin</label>
+                                <input type="tel" id="target-wa" class="w-full px-4 py-3.5 bg-sky-50/60 border border-sky-200 rounded-2xl text-sm focus:outline-none font-bold text-sky-900" value="6285872024756">
+                            </div>
+                        </div>
+                        <div id="form-error" class="hidden flex items-center gap-3 bg-rose-50 text-rose-600 text-xs font-bold p-3.5 rounded-2xl border border-rose-100 animate-pop-in">
+                            <i class="fa-solid fa-circle-exclamation text-base"></i> Mohon lengkapi semua kolom data dengan benar.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-[60%] p-8 lg:p-12 relative flex flex-col justify-between bg-white" id="invoice-printable">
+                    <div>
+                        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-8 mb-8">
+                            <div>
+                                <div class="flex items-center gap-3 mb-3">
+                                    <img id="invoice-logo" src="https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265" alt="Logo Tekunin" class="w-10 h-10 object-cover rounded-full ring-2 ring-slate-900/10">
+                                    <span class="font-black text-2xl tracking-tight text-slate-900">Tekunin CCTV</span>
+                                </div>
+                                <div class="text-xs text-slate-500 space-y-0.5 font-medium">
+                                    <p>Jl. Terusan H Nawi Malik</p>
+                                    <p>Depok, Jawa Barat 16423</p>
+                                    <p class="text-sky-600 font-bold">Telp/WA: 0812-3456-7890</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <h1 class="text-3xl font-black text-slate-200 tracking-widest uppercase mb-3">INVOICE</h1>
+                                <table class="text-xs text-slate-700 ml-auto text-left border-collapse">
+                                    <tr><td class="pr-4 py-0.5 text-slate-400 uppercase font-bold">No. Faktur</td><td id="inv-id" class="font-extrabold text-slate-900">INV-...</td></tr>
+                                    <tr><td class="pr-4 py-0.5 text-slate-400 uppercase font-bold">Tanggal</td><td id="inv-date" class="font-extrabold text-slate-900">-</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row justify-between gap-6 mb-8">
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 shadow-sm flex-1">
+                                <h3 class="text-[10px] font-black text-sky-600 uppercase tracking-widest mb-2">Ditagihkan Kepada:</h3>
+                                <p id="inv-bill-name" class="text-base font-bold text-slate-900 mb-1">[Nama Pembeli]</p>
+                                <p id="inv-bill-address" class="text-xs text-slate-500 max-w-sm whitespace-pre-wrap leading-relaxed">[Alamat Pemasangan Lengkap]</p>
+                                <p id="inv-bill-phone" class="text-xs text-slate-700 font-bold mt-2"><i class="fa-solid fa-phone text-slate-400 mr-2 text-[10px]"></i>[No HP]</p>
+                            </div>
+                            <div class="flex-shrink-0 flex items-center justify-center">
+                                <div class="text-center p-4 border-2 border-dashed border-slate-300 rounded-2xl bg-rose-50/50">
+                                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Status</p>
+                                    <p class="text-xl font-black text-rose-600 uppercase tracking-wider">DP</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto mb-6 rounded-2xl border border-slate-200">
+                            <table class="w-full text-left border-collapse bg-white">
+                                <thead class="bg-slate-50 text-[11px]">
+                                    <tr class="text-slate-500 uppercase tracking-wider font-extrabold">
+                                        <th class="py-3 px-4 border-b border-slate-200 w-10 text-center">No</th>
+                                        <th class="py-3 px-4 border-b border-slate-200">Deskripsi Paket</th>
+                                        <th class="py-3 px-4 border-b border-slate-200 text-center w-16">Qty</th>
+                                        <th class="py-3 px-4 border-b border-slate-200 text-right">Harga</th>
+                                        <th class="py-3 px-4 border-b border-slate-200 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-items-table" class="text-xs text-slate-700 divide-y divide-slate-100 font-medium"></tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end mb-8">
+                            <div class="w-full sm:w-1/2">
+                                <table class="w-full text-xs">
+                                    <tr><td class="py-1.5 px-3 text-slate-500">Subtotal</td><td id="inv-subtotal" class="py-1.5 px-3 text-right font-bold text-slate-800">Rp 0</td></tr>
+                                    <tr><td class="py-1.5 px-3 text-slate-500">Biaya Instalasi</td><td class="py-1.5 px-3 text-right font-bold text-emerald-600">Gratis</td></tr>
+                                    <tr class="border-t-2 border-slate-900"><td class="py-3 px-3 font-black text-sm text-slate-900 uppercase">Total Akhir</td><td id="inv-grand-total" class="py-3 px-3 text-right font-black text-xl text-sky-600">Rp 0</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end mt-auto pt-4 border-t border-slate-200 text-[11px] text-slate-500">
+                        <div>
+                            <p class="font-bold text-slate-700 mb-0.5">Catatan Penting:</p>
+                            <p>Transfer via BCA 123456789 a.n Tekunin CCTV. Garansi perangkat berlaku 1 Tahun.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-8 py-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end gap-3 print-hide z-10">
+                <button onclick="closeCheckout()" class="px-6 py-3 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all active:scale-95">Kembali</button>
+                <button onclick="printInvoice()" class="px-6 py-3 text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-2xl transition-all flex items-center justify-center gap-2"><i class="fa-solid fa-print"></i> Cetak Invoice</button>
+                <button id="btn-wa-send" onclick="sendToWhatsAppAPI()" class="px-7 py-3 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-base"></i> Kirim Pesanan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        let db = null;
+        let products = [];
+        let cart = JSON.parse(localStorage.getItem('st_cart_v3')) || [];
+        let customers = JSON.parse(localStorage.getItem('st_customers_v3')) || [];
+        
+        let isCartOpen = false;
+        let currentOrderId = "";
+        let currentTotalAmount = 0;
+        let autoSlideIntervals = [];
+
+        const DEFAULT_LOGO_URL = 'https://lh3.googleusercontent.com/a-/ALV-UjWIlPWK_N0gEv9jIqlVaZVgpHnUxo0C2Wj2ieQFhdB7z-gsHkZH=w1265';
+        let currentLogoUrl = localStorage.getItem('st_logo_v1') || DEFAULT_LOGO_URL;
+        let customBootstrapCss = localStorage.getItem('st_bootstrap_css_v1') || '';
+        let customBootstrapUrl = localStorage.getItem('st_bootstrap_url_v1') || '';
+        let customHtmlTemplate = localStorage.getItem('st_html_v1') || '';
+        let DEFAULT_HTML_LAYOUT = "";
+
+        function executeInjectedScripts(container) {
+            const scripts = container.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                if (oldScript.parentNode) {
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+            });
+        }
+
+        function applyCustomHTML(htmlString) {
+            const mainDesign = document.getElementById('main-design');
+            if (!mainDesign) return;
+
+            if (!htmlString || htmlString.trim() === '') {
+                mainDesign.innerHTML = DEFAULT_HTML_LAYOUT;
+                renderProducts();
+                return;
+            }
+
+            mainDesign.innerHTML = htmlString;
+            executeInjectedScripts(mainDesign);
+
+            if (!document.getElementById('product-container')) {
+                const fallbackSection = document.createElement('div');
+                fallbackSection.innerHTML = `
+                    <section class="py-16 bg-slate-50 border-t-4 border-sky-500 my-10">
+                        <div class="max-w-7xl mx-auto px-4">
+                            <div class="text-center mb-8">
+                                <span class="bg-sky-100 text-sky-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Sistem Auto-Recover</span>
+                                <h2 class="text-3xl font-black text-slate-900 mt-3">Katalog Produk</h2>
+                            </div>
+                            <div id="product-container" class="space-y-12"></div>
+                        </div>
+                    </section>
+                `;
+                mainDesign.appendChild(fallbackSection);
+            }
+
+            if (!htmlString.includes('toggleCart()')) {
+                const floatingCart = document.createElement('button');
+                floatingCart.setAttribute('onclick', 'toggleCart()');
+                floatingCart.className = "fixed bottom-24 right-6 z-50 bg-sky-600 text-white w-14 h-14 rounded-full shadow-[0_10px_40px_rgba(2,132,199,0.5)] flex items-center justify-center hover:scale-110 transition-transform border-4 border-white/20";
+                floatingCart.innerHTML = `<i class="fa-solid fa-cart-shopping text-xl"></i><span class="cart-badge-indicator absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-lg transition-all scale-0">0</span>`;
+                mainDesign.appendChild(floatingCart);
+            }
+
+            if (!htmlString.includes('admin.html')) {
+                const floatingAdmin = document.createElement('button');
+                floatingAdmin.setAttribute('onclick', "window.location.href='admin.html'");
+                floatingAdmin.className = "fixed bottom-6 right-6 z-50 bg-slate-900 text-slate-300 hover:text-white p-3.5 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] flex items-center justify-center hover:scale-105 transition-all text-xs font-bold gap-2 border border-slate-700";
+                floatingAdmin.innerHTML = `<i class="fa-solid fa-gear"></i> Admin`;
+                mainDesign.appendChild(floatingAdmin);
+            }
+
+            setTimeout(() => { renderProducts(); renderCart(); }, 100);
+        }
+
+        function applyLogo(logoUrl) {
+            if (!logoUrl) return;
+            currentLogoUrl = logoUrl;
+            const siteFavicon = document.getElementById('site-favicon');
+            const navbarLogo = document.getElementById('navbar-logo');
+            const footerLogo = document.getElementById('footer-logo');
+            const invoiceLogo = document.getElementById('invoice-logo');
+
+            if (siteFavicon) siteFavicon.href = logoUrl;
+            if (navbarLogo) navbarLogo.src = logoUrl;
+            if (footerLogo) footerLogo.src = logoUrl;
+            if (invoiceLogo) invoiceLogo.src = logoUrl;
+        }
+
+        function applyBootstrapSettings(url, cssText) {
+            const linkEl = document.getElementById('bootstrap-css-link');
+            const styleEl = document.getElementById('custom-bootstrap-style');
+            
+            if (url) {
+                linkEl.href = url; styleEl.textContent = '';
+            } else if (cssText) {
+                linkEl.href = ''; styleEl.textContent = cssText;
+            } else {
+                linkEl.href = ''; styleEl.textContent = '';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            DEFAULT_HTML_LAYOUT = document.getElementById('main-design').innerHTML;
+            applyLogo(currentLogoUrl);
+            applyBootstrapSettings(customBootstrapUrl, customBootstrapCss);
+            if (customHtmlTemplate) applyCustomHTML(customHtmlTemplate);
+        });
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCEwFwDcxonHt0EB3bl2f4TyusIt4nzuGw",
+                authDomain: "tekunin-3d037.firebaseapp.com",
+                databaseURL: "https://tekunin-3d037-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "tekunin-3d037",
+                storageBucket: "tekunin-3d037.firebasestorage.app",
+                messagingSenderId: "511554054801",
+                appId: "1:511554054801:web:b1a7313db7063d9db42d30"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+
+            db.ref('products').on('value', (snapshot) => {
+                const data = snapshot.val();
+                products = data ? Object.keys(data).map(key => ({...data[key], firebaseKey: key})).reverse() : [];
+                renderProducts();
+            });
+
+            db.ref('settings/logo').on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) { applyLogo(val); localStorage.setItem('st_logo_v1', val); }
+            });
+
+            db.ref('settings/bootstrap').on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    let newUrl = val.url || ''; let newCss = val.css || ''; let newHtml = val.html || '';
+                    if (newHtml !== customHtmlTemplate) { customHtmlTemplate = newHtml; applyCustomHTML(customHtmlTemplate); localStorage.setItem('st_html_v1', customHtmlTemplate); }
+                    if (newUrl !== customBootstrapUrl || newCss !== customBootstrapCss) {
+                        customBootstrapUrl = newUrl; customBootstrapCss = newCss;
+                        applyBootstrapSettings(customBootstrapUrl, customBootstrapCss);
+                        localStorage.setItem('st_bootstrap_url_v1', customBootstrapUrl); localStorage.setItem('st_bootstrap_css_v1', customBootstrapCss);
+                    }
+                } else {
+                    customHtmlTemplate = ''; customBootstrapUrl = ''; customBootstrapCss = '';
+                    applyCustomHTML(''); applyBootstrapSettings('', '');
+                    localStorage.removeItem('st_html_v1'); localStorage.removeItem('st_bootstrap_url_v1'); localStorage.removeItem('st_bootstrap_css_v1');
+                }
+            });
+
+        } catch (error) {
+            console.warn("Firebase belum terkoneksi. Mode Offline/Lokal Aktif:", error.message);
+            db = null;
+            setTimeout(() => { renderProducts(); }, 100);
+        }
+
+        function saveCart() { localStorage.setItem('st_cart_v3', JSON.stringify(cart)); renderCart(); }
+
+        const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '<i class="fa-solid fa-check text-emerald-400"></i>' : (type === 'error' ? '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>' : '<i class="fa-solid fa-info text-sky-400"></i>');
+            const bgIcon = type === 'success' ? 'bg-emerald-500/20' : (type === 'error' ? 'bg-rose-500/20' : 'bg-sky-500/20');
+            
+            toast.className = `glass-dark text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-in-right pointer-events-auto border border-white/10`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-xl ${bgIcon} flex items-center justify-center text-base">${icon}</div><div><p class="text-xs font-black uppercase tracking-wider">${type === 'success' ? 'Berhasil' : (type==='error'?'Gagal':'Informasi')}</p><p class="text-xs text-slate-300 font-medium">${message}</p></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        function scrollSlider(sliderId, direction) {
+            const slider = document.getElementById(sliderId);
+            if (slider) slider.scrollBy({ left: direction * 390, behavior: 'smooth' });
+        }
+
+        function renderProducts() {
+            autoSlideIntervals.forEach(interval => clearInterval(interval));
+            autoSlideIntervals = [];
+
+            const container = document.getElementById('product-container');
+            if (!container) return;
+            
+            if (products.length === 0) {
+                container.innerHTML = `<div class="text-center py-16 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-300">Katalog kosong. Tambahkan melalui Panel Admin.</div>`;
+                return;
+            }
+
+            const groupedProducts = products.reduce((acc, curr) => {
+                const groupName = curr.group || 'Lainnya';
+                if (!acc[groupName]) acc[groupName] = [];
+                acc[groupName].push(curr);
+                return acc;
+            }, {});
+
+            let html = '';
+            let groupIndex = 0;
+
+            for (const [groupName, items] of Object.entries(groupedProducts)) {
+                const sliderId = `slider-${groupIndex}`;
+                const hasManyItems = items.length > 3;
+
+                html += `<div class="space-y-6 animate-fade-in-up relative group/section">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5 flex-1">
+                            <div class="h-7 w-2 bg-sky-600 rounded-full"></div>
+                            <h3 class="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-wide">${groupName}</h3>
+                            <span class="text-[11px] font-black bg-sky-100 text-sky-700 px-3 py-1 rounded-full shadow-sm">${items.length} Paket</span>
+                            <div class="h-px flex-1 bg-slate-200/80 ml-4 hidden sm:block"></div>
+                        </div>
+                        ${hasManyItems ? `<div class="flex items-center gap-2">
+                            <button onclick="scrollSlider('${sliderId}', -1)" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-all shadow-sm active:scale-95"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                            <button onclick="scrollSlider('${sliderId}', 1)" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-all shadow-sm active:scale-95"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                        </div>` : ''}
+                    </div>
+                    <div id="${sliderId}" class="${hasManyItems ? 'flex overflow-x-auto hide-scrollbar gap-6 pb-6 pt-2 px-1 snap-x scroll-smooth' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}">`;
+
+                html += items.map((prod, index) => `
+                    <div class="bg-white rounded-3xl border border-slate-200/70 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group relative ${hasManyItems ? 'min-w-[310px] sm:min-w-[360px] max-w-[380px] flex-shrink-0 snap-start' : ''}" style="animation-delay: ${index * 0.08}s">
+                        <div class="absolute top-4 left-4 z-10 flex gap-2"><span class="bg-sky-600/90 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-md"><i class="fa-solid fa-tag mr-1 text-[9px]"></i>${prod.group || 'Umum'}</span></div>
+                        <div class="absolute top-4 right-4 z-10"><span class="bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full uppercase tracking-widest shadow-md">${prod.badge || 'Tersedia'}</span></div>
+                        <div class="relative overflow-hidden aspect-[4/3] bg-slate-100 p-5"><img src="${prod.image}" alt="${prod.name}" class="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1557324232-b8917d3c3dcb?q=80&w=400&auto=format&fit=crop'"></div>
+                        <div class="p-7 flex flex-col flex-grow">
+                            <h3 class="text-lg font-black text-slate-900 mb-2 group-hover:text-sky-600 transition-colors leading-snug">${prod.name}</h3>
+                            <p class="text-xs text-slate-500 mb-6 flex-grow leading-relaxed font-medium line-clamp-3">${prod.description}</p>
+                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                                <span class="text-xl font-black text-slate-900">${formatIDR(prod.price)}</span>
+                                <button onclick="addToCart('${prod.id}')" class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95"><i class="fa-solid fa-plus text-base"></i></button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+                html += `</div></div>`;
+
+                if (hasManyItems) {
+                    const sliderElId = sliderId;
+                    autoSlideIntervals.push(setInterval(() => {
+                        const sliderEl = document.getElementById(sliderElId);
+                        if (sliderEl) sliderEl.scrollLeft + sliderEl.clientWidth >= sliderEl.scrollWidth - 10 ? sliderEl.scrollTo({ left: 0, behavior: 'smooth' }) : sliderEl.scrollBy({ left: 390, behavior: 'smooth' });
+                    }, 4500));
+                }
+                groupIndex++;
+            }
+            container.innerHTML = html;
+        }
+
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id); if (!prod) return;
+            const ex = cart.find(i => i.id === id); if (ex) ex.qty++; else cart.push({id:prod.id, name:prod.name, price:prod.price, img:prod.image, qty:1});
+            saveCart(); showToast(`${prod.name} ditambahkan`);
+        }
+        function updateQty(id, delta) {
+            const idx = cart.findIndex(i => i.id === id);
+            if (idx!==-1) { cart[idx].qty+=delta; if(cart[idx].qty<=0) cart.splice(idx,1); saveCart(); }
+        }
+        function toggleCart() {
+            isCartOpen = !isCartOpen;
+            document.getElementById('cart-sidebar').classList.toggle('translate-x-full', !isCartOpen);
+            document.getElementById('cart-backdrop').classList.toggle('opacity-0', !isCartOpen);
+            document.getElementById('cart-backdrop').classList.toggle('pointer-events-none', !isCartOpen);
+            document.body.style.overflow = isCartOpen ? 'hidden' : '';
+        }
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            const btnCheckout = document.getElementById('btn-checkout');
+
+            const badges = document.querySelectorAll('.cart-badge-indicator');
+            const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+            
+            badges.forEach(badge => {
+                badge.innerText = totalItems;
+                totalItems > 0 ? (badge.classList.remove('scale-0'), badge.classList.add('scale-100')) : (badge.classList.remove('scale-100'), badge.classList.add('scale-0'));
+            });
+
+            if (btnCheckout) btnCheckout.disabled = totalItems === 0;
+
+            if (cart.length === 0) {
+                if(container) container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-400"><div class="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-3 border border-slate-200/60"><i class="fa-solid fa-basket-shopping text-3xl"></i></div><p class="font-bold text-sm">Keranjang Masih Kosong</p></div>`;
+                if(totalEl) totalEl.innerText = formatIDR(0);
+                return;
+            }
+
+            let total = 0;
+            if(container) {
+                container.innerHTML = cart.map(item => {
+                    total += (item.price * item.qty);
+                    return `<div class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm items-center">
+                        <img src="${item.img}" class="w-16 h-16 object-cover rounded-xl bg-slate-100 flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-slate-900 truncate mb-1">${item.name}</h4>
+                            <div class="text-sky-600 font-extrabold text-xs">${formatIDR(item.price)}</div>
+                            <div class="flex items-center bg-slate-100 rounded-xl p-0.5 w-max mt-2 border border-slate-200">
+                                <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 rounded-lg hover:bg-white text-slate-500"><i class="fa-solid fa-minus text-[9px]"></i></button>
+                                <span class="text-xs font-black w-6 text-center text-slate-900">${item.qty}</span>
+                                <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 rounded-lg hover:bg-white text-slate-500"><i class="fa-solid fa-plus text-[9px]"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            currentTotalAmount = total;
+            if(totalEl) totalEl.innerText = formatIDR(total);
+        }
+
+        const bindInput = (id, targetId, placeholder, pre='') => {
+            let el = document.getElementById(id);
+            if(el) el.addEventListener('input', e => document.getElementById(targetId).innerHTML = e.target.value ? pre+e.target.value : placeholder);
+        };
+        bindInput('buyer-name', 'inv-bill-name', '[Nama Pembeli]');
+        bindInput('buyer-address', 'inv-bill-address', '[Alamat Pemasangan Lengkap]');
+        bindInput('buyer-phone', 'inv-bill-phone', '<i class="fa-solid fa-phone text-slate-400 mr-2 text-[10px]"></i>[No HP]', '<i class="fa-solid fa-phone text-slate-400 mr-2 text-[10px]"></i>');
+
+        function openCheckout() {
+            if (!cart.length) return;
+            toggleCart(); 
+            currentOrderId = `INV${new Date().toISOString().slice(2,10).replace(/-/g,'')}${Math.random().toString(36).substr(2,3).toUpperCase()}`;
+            document.getElementById('inv-id').innerText = currentOrderId;
+            document.getElementById('inv-date').innerText = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            document.getElementById('inv-items-table').innerHTML = cart.map((item, i) => `<tr>
+                <td class="py-3 px-4 text-center border-b border-slate-100 text-slate-500">${i+1}</td>
+                <td class="py-3 px-4 font-bold border-b border-slate-100 text-slate-900">${item.name}</td>
+                <td class="py-3 px-4 text-center border-b border-slate-100"><span class="bg-slate-100 px-2 py-0.5 rounded text-xs font-bold">${item.qty}</span></td>
+                <td class="py-3 px-4 text-right border-b border-slate-100">${formatIDR(item.price)}</td>
+                <td class="py-3 px-4 text-right font-bold border-b border-slate-100">${formatIDR(item.price * item.qty)}</td>
+            </tr>`).join('');
+
+            document.getElementById('inv-subtotal').innerText = formatIDR(currentTotalAmount);
+            document.getElementById('inv-grand-total').innerText = formatIDR(currentTotalAmount);
+            ['buyer-name', 'buyer-address', 'buyer-phone'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('inv-bill-name').innerText = '[Nama Pembeli]'; document.getElementById('inv-bill-address').innerText = '[Alamat Pemasangan]'; document.getElementById('inv-bill-phone').innerHTML = '<i class="fa-solid fa-phone mr-2 text-[10px]"></i>[No HP]';
+            
+            document.getElementById('checkout-modal').style.display = 'flex';
+            setTimeout(() => document.getElementById('checkout-content').classList.remove('scale-95', 'opacity-0'), 10);
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkout-content').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => document.getElementById('checkout-modal').style.display = 'none', 300);
+        }
+
+        function validateCheckout() {
+            const data = { name: document.getElementById('buyer-name').value.trim(), address: document.getElementById('buyer-address').value.trim(), phone: document.getElementById('buyer-phone').value.trim(), wa: document.getElementById('target-wa').value.trim() };
+            if (!data.name || !data.address || !data.phone || !data.wa) { document.getElementById('form-error').classList.remove('hidden'); return null; }
+            document.getElementById('form-error').classList.add('hidden'); return data;
+        }
+
+        function printInvoice() { if(validateCheckout()) window.print(); }
+
+        function sendToWhatsAppAPI() {
+            const data = validateCheckout(); if (!data) return;
+            const btn = document.getElementById('btn-wa-send');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-sm"></i> Memproses...'; btn.disabled = true;
+
+            const newCustomer = { id: currentOrderId, date: new Date().toLocaleDateString('id-ID'), rawDate: new Date().toISOString(), name: data.name, phone: data.phone, address: data.address, items: [...cart], total: currentTotalAmount, bank: 'Transfer Manual', proofImage: '', status: 'BELUM LUNAS', dpAmount: currentTotalAmount / 2 };
+
+            if (db) db.ref('customers').push(newCustomer);
+            else { customers.unshift(newCustomer); localStorage.setItem('st_customers_v3', JSON.stringify(customers)); }
+            
+            closeCheckout(); 
+            showToast('Pesanan berhasil dicatat! Admin akan segera menghubungi Anda.', 'success'); 
+            cart = []; 
+            saveCart();
+            setTimeout(()=> { btn.innerHTML='<i class="fa-brands fa-whatsapp text-base"></i> Kirim Pesanan'; btn.disabled=false; }, 2000);
+        }
+    </script>
+</body>
+</html>
