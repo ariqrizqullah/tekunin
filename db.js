@@ -1,5 +1,15 @@
 const Database = require('better-sqlite3');
-const db = new Database('./chat_history.db');
+
+// Menggunakan database in-memory atau membuat fallback otomatis yang aman di memori/temporary
+let db;
+try {
+  // Coba buat file database di direktori saat ini
+  db = new Database('./chat_history.db');
+  console.log('Berhasil terhubung ke database file lokal.');
+} catch (err) {
+  console.warn('Peringatan: Gagal akses file disk, beralih ke SQLite In-Memory database.');
+  db = new Database(':memory:');
+}
 
 // Inisialisasi Tabel
 db.exec(`
@@ -48,5 +58,4 @@ db.all = function (sql, params = [], callback) {
   }
 };
 
-console.log('Berhasil terhubung ke database SQLite (Better-SQLite3 dengan Wrapper).');
 module.exports = db;
